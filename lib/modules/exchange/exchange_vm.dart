@@ -9,8 +9,24 @@ import 'exchange_model/currency_list_model.dart';
 class ExchangeVM extends GetxController {
   ExchangeRepoImpl repo = ExchangeRepoImpl();
   List<Datum> list = List.empty(growable: true);
-  String sym = "";
+  List<Datum> baseList = List.empty(growable: true);
+  String id = "";
   HashMap<String?, String?> imgs = HashMap();
+  int start = 1;
+  int limit = 20;
+  String cfilter = "market_cap";
+  bool isLoading = true;
+  TextEditingController searchCtrl = TextEditingController();
+
+  void showLoader() {
+    isLoading = true;
+    update();
+  }
+
+  void hideLoader() {
+    isLoading = false;
+    update();
+  }
 
   @override
   void onInit() {
@@ -18,40 +34,102 @@ class ExchangeVM extends GetxController {
     init();
   }
 
+  //This runs in onInit method.
   Future<void> init() async {
     await getCurrencyList();
-    getCurrencyMeta(symbols: sym);
+    getCurrencyMeta();
   }
 
+  ///This method fetches the top currency data with filter and limit.
   Future<void> getCurrencyList() async {
-    await repo.getCurrencyList().then((response) {
-      int idx = list.length;
-      sym = "";
-      list.insertAll(list.length, response.data!);
-      for (int i = idx; i < list.length - 1; i++) {
-        if (!imgs.containsKey(list[i].symbol)) {
-          imgs[list[i].symbol] = null;
-        }
-        sym = "$sym${list[i].symbol},";
-      }
-      sym = sym + list[list.length - 1].symbol.toString();
+    showLoader();
+    await repo
+        .getCurrencyList(param: "?start=$start&limit=$limit&sort=$cfilter")
+        .then((response) {
+      //Clearing older data    
+      list.clear();
+      baseList.clear();
+      id = "";
 
+      //adding data to lists.
+      list.insertAll(list.length, response.data!);
+      baseList.addAll(list);
+      
+      //getting ids of the data and storing into hashmap so that we can
+      //directly get the logos from hashmap itself.
+      for (int i = 0; i < list.length; i++) {
+        if (!imgs.containsKey(list[i].id.toString())) {
+          imgs[list[i].id.toString()] = null;
+        }
+        id = "$id${list[i].id},";
+      }
+      id = id.substring(0, id.length - 1);
+
+      //updating state
       update();
     }).onError((error, stackTrace) {
-      debugPrint("error ${error.toString()}");
+      Get.snackbar("Api error", error.toString(), duration: const Duration(seconds: 3));
     });
+    hideLoader();
   }
 
-  Future<void> getCurrencyMeta({String? symbols = ''}) async {
-    await repo.getCurrencyMetadata(param: "?symbol=$symbols").then((response) {
+  ///This api fetches logos and store into the hashmap.
+  Future<void> getCurrencyMeta() async {
+    await repo.getCurrencyMetadata(param: "?id=$id").then((response) {
+      //Getting logo images and putting in hashmap.
       response.data!.forEach((symbol, value) {
         if (imgs.containsKey(symbol) && imgs[symbol] == null) {
           imgs[symbol] = value.first.logo.toString();
         }
       });
+
+      //updating state.
       update();
     }).onError((error, stackTrace) {
-      debugPrint("error ${error.toString()}");
+      Get.snackbar("Api error", error.toString(), duration: const Duration(seconds: 3));
     });
+  }
+
+  ///Helper method that checks if [percent_change_24h] is negative or not.
+  bool is24HrChangeNegative(int index) =>
+      list[index].quote!.usd!.percentChange24H! < 0.0;
+
+  //This method locally searches in list.
+  void search(String query) {
+    list.clear();
+    if (query.toString().trim().isEmpty) {
+      list.addAll(baseList);
+    } else {
+      //if the query is matched in name or symbol then data is added into search.
+      list.addAll(baseList.where((el) {
+        return (el.name
+                .toString()
+                .trim()
+                .toLowerCase()
+                .contains(query.toString().trim().toLowerCase()) ||
+            el.symbol
+                .toString()
+                .trim()
+                .toLowerCase()
+                .contains(query.toString().trim().toLowerCase()));
+      }));
+    }
+    update();
+  }
+
+  //Refreshes the data by recalling apis
+  Future<void> onRefresh() async {
+    searchCtrl.clear();
+    await getCurrencyList();
+    getCurrencyMeta();
+  }
+
+  //Sort list using api.
+  Future<void> sortBy(ExchangeVM vm, String sortBy) async {
+    cfilter = sortBy;
+    searchCtrl.clear();
+    update();
+    await getCurrencyList();
+    getCurrencyMeta();
   }
 }

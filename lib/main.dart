@@ -29,11 +29,10 @@ class MyApp extends StatelessWidget {
                 page: () => const HomeView(),
                 binding: HomeBinding())
           ],
-          initialRoute: AppRoutes.home,
-          // navigatorKey: locator<NavigationService>().navigatoryKey,
+          initialRoute: AppRoutes.home,          
         );
       },
-      designSize: const Size(375, 812),
+      designSize: const Size(375, 812), //dimensions as per figma.
     );
   }
 }

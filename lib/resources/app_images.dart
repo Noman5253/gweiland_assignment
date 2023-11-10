@@ -11,6 +11,8 @@ class AppSvgIcons {
   static const bell = "$path/bell.svg";
   static const graph = "$path/graph.svg";
   static const graphp = "$path/graph+.svg";
+
+  static const bannerGraph = "$path/banner_graph.svg";
 }
 
 class AppPngIcons {
@@ -25,4 +27,5 @@ class AppPngIcons {
   static const filter = "$path/filter.png";
   static const bell = "$path/bell.png";
   static const dash1 = "$path/dash-1.png";
+  static const bannerGraph = "$path/banner_graph.png";
 }

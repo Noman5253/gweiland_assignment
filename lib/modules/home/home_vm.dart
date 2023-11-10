@@ -20,6 +20,12 @@ class HomeVM extends GetxController {
     AppRoutes.wallet,
   ];
 
+  void onTap(int page) {
+    selectedIndex = page;
+    changePage(page);
+    update();
+  }
+
   void changePage(int index) {
     selectedIndex = index;    
     update();

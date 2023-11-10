@@ -7,13 +7,15 @@ import '../../../data/network/endpoints.dart';
 
 class ExchangeRepoImpl extends ExchangeRepo {
   ApiService apiService = ApiService();
-
+  
+  //Parsing from json into dart model class.
   @override
   Future<CurrencyListModel> getCurrencyList({String? endpoint, String param=""}) async{
     return CurrencyListModel.fromJson(
         await apiService.get(endpoint ?? Endpoints.cryptocurrency+Endpoints.listings+Endpoints.latest, param: param));
   }
 
+  //Parsing from json into dart model class.
   @override
   Future<MetadataInfo> getCurrencyMetadata({String? endpoint, String param=""}) async {
     return MetadataInfo.fromJson(
