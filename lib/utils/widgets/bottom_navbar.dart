@@ -18,7 +18,8 @@ class BottomNavBar extends StatelessWidget {
     return GetBuilder<HomeVM>(
       builder: (c) {
         return Container(
-          margin: EdgeInsets.symmetric(horizontal: 15.w, vertical: 10.w),          
+          margin:
+              EdgeInsets.only(left: 15.w, right: 15.w, top: 10.h, bottom: 20.h),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(25.r),
             color: AppColors.blackColor,
